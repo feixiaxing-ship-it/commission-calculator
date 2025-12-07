@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提成计算工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        .input-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 22px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .result-section {
+            margin-top: 30px;
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #333;
+            margin: 25px 0 15px 0;
+            font-size: 18px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .input-table {
+            max-width: 500px;
+        }
+        
+        .threshold-table {
+            max-width: 600px;
+        }
+        
+        .process-table {
+            font-size: 13px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .highlight {
+            background-color: #e8f5e9;
+            font-weight: bold;
+        }
+        
+        .total-section {
+            background-color: #e8f5e9;
+            padding: 20px;
+            border-radius: 4px;
+            border: 1px solid #c8e6c9;
+            margin-top: 20px;
+        }
+        
+        .total-section h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        
+        .total-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1b5e20;
+        }
+        
+        .rules-section {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+        
+        .rules-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .rules-section ul {
+            list-style-position: inside;
+            color: #555;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>提成计算工具</h1>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label for="totalInvestment">总投入金额（元）：</label>
+                <input type="number" id="totalInvestment" placeholder="请输入总投入金额" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="profit">利润额（元）：</label>
+                <input type="number" id="profit" placeholder="请输入利润额" step="0.01" min="0">
+            </div>
+            <button onclick="calculateCommission()">计算提成</button>
+        </div>
+        
+        <div class="result-section" id="resultSection" style="display: none;">
+            <h2>计算结果</h2>
+            
+            <h3>输入参数</h3>
+            <table class="input-table">
+                <thead>
+                    <tr>
+                        <th>参数名称</th>
+                        <th>数值（元）</th>
+                    </tr>
+                </thead>
+                <tbody id="inputParams">
+                    <!-- 输入参数将在这里动态生成 -->
+                </tbody>
+            </table>
+            
+            <h3>区间临界点计算</h3>
+            <table class="threshold-table">
+                <thead>
+                    <tr>
+                        <th>临界点名称</th>
+                        <th>计算公式</th>
+                        <th>数值（元）</th>
+                    </tr>
+                </thead>
+                <tbody id="thresholdTable">
+                    <!-- 临界点计算将在这里动态生成 -->
+                </tbody>
+            </table>
+            
+            <h3>提成计算过程</h3>
+            <table class="process-table">
+                <thead>
+                    <tr>
+                        <th>利润额区间</th>
+                        <th>提成比例</th>
+                        <th>区间起点（元）</th>
+                        <th>区间终点（元）</th>
+                        <th>该区间利润额（元）</th>
+                        <th>计算公式</th>
+                        <th>该区间提成（元）</th>
+                    </tr>
+                </thead>
+                <tbody id="processTable">
+                    <!-- 计算过程将在这里动态生成 -->
+                </tbody>
+            </table>
+            
+            <h3>计算结果汇总</h3>
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>利润额区间</th>
+                        <th>提成比例</th>
+                        <th>该区间利润额（元）</th>
+                        <th>该区间提成（元）</th>
+                    </tr>
+                </thead>
+                <tbody id="resultTable">
+                    <!-- 结果表格将在这里动态生成 -->
+                </tbody>
+            </table>
+            
+            <div class="total-section">
+                <h3>总提成金额：</h3>
+                <div class="total-amount" id="totalCommission">0.00 元</div>
+            </div>
+        </div>
+        
+        <div class="rules-section">
+            <h3>提成计算规则</h3>
+            <ul>
+                <li>提成以“利润额”为计算基数，根据利润额相对于总投入的不同区间，按不同比例分段累进计算。</li>
+                <li>利润额区间（以总投入为基数）≤ 总投入 × 15%，提成比例：15%</li>
+                <li>利润额区间 > 总投入 × 15% 且 ≤ 总投入 × 30%，提成比例：20%</li>
+                <li>利润额区间 > 总投入 × 30% 且 ≤ 总投入 × 50%，提成比例：25%</li>
+                <li>利润额区间 > 总投入 × 50% 且 ≤ 总投入 × 100%，提成比例：30%</li>
+                <li>利润额区间 > 总投入 × 100%，提成比例：35%</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        function calculateCommission() {
+            // 获取输入值
+            const totalInvestment = parseFloat(document.getElementById('totalInvestment').value);
+            const profit = parseFloat(document.getElementById('profit').value);
+            
+            // 验证输入
+            if (isNaN(totalInvestment) || isNaN(profit) || totalInvestment <= 0) {
+                alert('请输入有效的总投入和利润额');
+                return;
+            }
+            
+            // 计算各区间的临界点
+            const point15 = totalInvestment * 0.15;
+            const point30 = totalInvestment * 0.30;
+            const point50 = totalInvestment * 0.50;
+            const point100 = totalInvestment * 1.00;
+            
+            // 计算各区间的利润额和提成
+            let commission15 = 0;
+            let commission20 = 0;
+            let commission25 = 0;
+            let commission30 = 0;
+            let commission35 = 0;
+            
+            let amount15 = 0;
+            let amount20 = 0;
+            let amount25 = 0;
+            let amount30 = 0;
+            let amount35 = 0;
+            
+            if (profit <= point15) {
+                amount15 = profit;
+                commission15 = amount15 * 0.15;
+            } else {
+                amount15 = point15;
+                commission15 = amount15 * 0.15;
+                
+                if (profit <= point30) {
+                    amount20 = profit - point15;
+                    commission20 = amount20 * 0.20;
+                } else {
+                    amount20 = point30 - point15;
+                    commission20 = amount20 * 0.20;
+                    
+                    if (profit <= point50) {
+                        amount25 = profit - point30;
+                        commission25 = amount25 * 0.25;
+                    } else {
+                        amount25 = point50 - point30;
+                        commission25 = amount25 * 0.25;
+                        
+                        if (profit <= point100) {
+                            amount30 = profit - point50;
+                            commission30 = amount30 * 0.30;
+                        } else {
+                            amount30 = point100 - point50;
+                            commission30 = amount30 * 0.30;
+                            
+                            amount35 = profit - point100;
+                            commission35 = amount35 * 0.35;
+                        }
+                    }
+                }
+            }
+            
+            // 计算总提成
+            const totalCommission = commission15 + commission20 + commission25 + commission30 + commission35;
+            
+            // 生成输入参数表格
+            const inputParamsHTML = `
+                <tr>
+                    <td>总投入金额</td>
+                    <td>${totalInvestment.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td>利润额</td>
+                    <td>${profit.toFixed(2)}</td>
+                </tr>
+            `;
+            
+            // 生成区间临界点表格
+            const thresholdHTML = `
+                <tr>
+                    <td>总投入 × 15%</td>
+                    <td>总投入 × 0.15</td>
+                    <td>${point15.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td>总投入 × 30%</td>
+                    <td>总投入 × 0.30</td>
+                    <td>${point30.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td>总投入 × 50%</td>
+                    <td>总投入 × 0.50</td>
+                    <td>${point50.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td>总投入 × 100%</td>
+                    <td>总投入 × 1.00</td>
+                    <td>${point100.toFixed(2)}</td>
+                </tr>
+            `;
+            
+            // 生成详细计算过程表格
+            const processHTML = `
+                <tr>
+                    <td>≤ 总投入 × 15%</td>
+                    <td>15%</td>
+                    <td>0.00</td>
+                    <td>${point15.toFixed(2)}</td>
+                    <td>${amount15.toFixed(2)}</td>
+                    <td>${amount15.toFixed(2)} × 15%</td>
+                    <td>${commission15.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td>总投入 × 15% 至 总投入 × 30%</td>
+                    <td>20%</td>
+                    <td>${point15.toFixed(2)}</td>
+                    <td>${point30.toFixed(2)}</td>
+                    <td>${amount20.toFixed(2)}</td>
+                    <td>${amount20.toFixed(2)} × 20%</td>
+                    <td>${commission20.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td>总投入 × 30% 至 总投入 × 50%</td>
+                    <td>25%</td>
+                    <td>${point30.toFixed(2)}</td>
+                    <td>${point50.toFixed(2)}</td>
+                    <td>${amount25.toFixed(2)}</td>
+                    <td>${amount25.toFixed(2)} × 25%</td>
+                    <td>${commission25.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td>总投入 × 50% 至 总投入 × 100%</td>
+                    <td>30%</td>
+                    <td>${point50.toFixed(2)}</td>
+                    <td>${point100.toFixed(2)}</td>
+                    <td>${amount30.toFixed(2)}</td>
+                    <td>${amount30.toFixed(2)} × 30%</td>
+                    <td>${commission30.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td>> 总投入 × 100%</td>
+                    <td>35%</td>
+                    <td>${point100.toFixed(2)}</td>
+                    <td>∞</td>
+                    <td>${amount35.toFixed(2)}</td>
+                    <td>${amount35.toFixed(2)} × 35%</td>
+                    <td>${commission35.toFixed(2)}</td>
+                </tr>
+            `;
+            
+            // 生成结果汇总表格
+            const resultHTML = `
+                <tr>
+                    <td>≤ 总投入 × 15%（≤ ${point15.toFixed(2)} 元）</td>
+                    <td>15%</td>
+                    <td>${amount15.toFixed(2)}</td>
+                    <td>${commission15.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td>总投入 × 15% 至 总投入 × 30%（${point15.toFixed(2)} 元 至 ${point30.toFixed(2)} 元）</td>
+                    <td>20%</td>
+                    <td>${amount20.toFixed(2)}</td>
+                    <td>${commission20.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td>总投入 × 30% 至 总投入 × 50%（${point30.toFixed(2)} 元 至 ${point50.toFixed(2)} 元）</td>
+                    <td>25%</td>
+                    <td>${amount25.toFixed(2)}</td>
+                    <td>${commission25.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td>总投入 × 50% 至 总投入 × 100%（${point50.toFixed(2)} 元 至 ${point100.toFixed(2)} 元）</td>
+                    <td>30%</td>
+                    <td>${amount30.toFixed(2)}</td>
+                    <td>${commission30.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td>> 总投入 × 100%（> ${point100.toFixed(2)} 元）</td>
+                    <td>35%</td>
+                    <td>${amount35.toFixed(2)}</td>
+                    <td>${commission35.toFixed(2)}</td>
+                </tr>
+                <tr class="highlight">
+                    <td colspan="3" style="text-align: right;">总计</td>
+                    <td>${totalCommission.toFixed(2)}</td>
+                </tr>
+            `;
+            
+            // 更新页面
+            document.getElementById('inputParams').innerHTML = inputParamsHTML;
+            document.getElementById('thresholdTable').innerHTML = thresholdHTML;
+            document.getElementById('processTable').innerHTML = processHTML;
+            document.getElementById('resultTable').innerHTML = resultHTML;
+            document.getElementById('totalCommission').textContent = totalCommission.toFixed(2) + ' 元';
+            document.getElementById('resultSection').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
